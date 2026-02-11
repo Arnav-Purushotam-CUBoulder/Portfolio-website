@@ -1,7 +1,8 @@
-import React, { Suspense, useRef, useState } from 'react';
+import React, { Suspense, useRef, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { MeshDistortMaterial, Float, Torus } from '@react-three/drei';
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useInView } from 'framer-motion';
+import { Download, Github, Linkedin } from 'lucide-react';
 import * as THREE from 'three';
 
 function FollowLight({ isDarkMode }: { isDarkMode: boolean }) {
@@ -39,6 +40,8 @@ function HeroShape({ isDarkMode }: { isDarkMode: boolean }) {
 
 export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMode: boolean, isVisible?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isSectionInView = useInView(containerRef, { amount: 0.2 });
+  const [isFinePointer, setIsFinePointer] = useState(true);
   const [copiedField, setCopiedField] = useState<'email' | 'phone' | null>(null);
   
   const mouseX = useMotionValue(0);
@@ -48,7 +51,17 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
   const smoothX = useSpring(mouseX, { damping: 40, stiffness: 120 });
   const smoothY = useSpring(mouseY, { damping: 40, stiffness: 120 });
 
+  useEffect(() => {
+    const pointerQuery = window.matchMedia('(pointer:fine)');
+    const syncPointerMode = () => setIsFinePointer(pointerQuery.matches);
+    syncPointerMode();
+    pointerQuery.addEventListener('change', syncPointerMode);
+
+    return () => pointerQuery.removeEventListener('change', syncPointerMode);
+  }, []);
+
   const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isFinePointer) return;
     if (!containerRef.current) return;
     const { left, top } = containerRef.current.getBoundingClientRect();
     mouseX.set(e.clientX - left);
@@ -62,6 +75,12 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
   };
 
   const bgStyle = isDarkMode ? 'bg-[#030303]' : 'bg-[#61dafbaa]';
+  const spotlightBackground = useTransform(
+    [smoothX, smoothY],
+    ([x, y]) => isDarkMode 
+      ? `radial-gradient(1200px circle at ${x}px ${y}px, rgba(255, 255, 255, 0.12), transparent 70%)`
+      : `radial-gradient(1200px circle at ${x}px ${y}px, rgba(79, 70, 229, 0.18), transparent 70%)`
+  );
 
   return (
     <AnimatePresence>
@@ -81,12 +100,7 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
           <motion.div 
             className="pointer-events-none absolute inset-0 z-10"
             style={{
-              background: useTransform(
-                [smoothX, smoothY],
-                ([x, y]) => isDarkMode 
-                  ? `radial-gradient(1200px circle at ${x}px ${y}px, rgba(255, 255, 255, 0.12), transparent 70%)`
-                  : `radial-gradient(1200px circle at ${x}px ${y}px, rgba(79, 70, 229, 0.18), transparent 70%)`
-              ),
+              background: spotlightBackground,
             }}
           />
 
@@ -95,7 +109,12 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
             transition={{ type: "spring", stiffness: 100 }}
             className="h-[300px] md:h-[350px] w-full z-20"
           >
-            <Canvas camera={{ position: [0, 0, 5] }}>
+            <Canvas
+              dpr={[1, 1.5]}
+              frameloop={isSectionInView ? 'always' : 'never'}
+              gl={{ antialias: false, powerPreference: 'high-performance' }}
+              camera={{ position: [0, 0, 5] }}
+            >
               <ambientLight intensity={0.01} />
               <Suspense fallback={null}>
                 <HeroShape isDarkMode={isDarkMode} />
@@ -139,6 +158,55 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
                   </p>
                   <p className="text-lg md:text-2xl font-semibold">+1 720-351-1267</p>
                 </motion.div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
+                <motion.a
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  href="https://github.com/Arnav-Purushotam-CUBoulder/Arnav-Purushotam-CUBoulder"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] transition-colors ${
+                    isDarkMode
+                      ? 'border-zinc-700 bg-zinc-900/40 text-white hover:border-yellow-400 hover:text-yellow-300'
+                      : 'border-zinc-300 bg-white/50 text-zinc-900 hover:border-indigo-600 hover:text-indigo-700'
+                  }`}
+                >
+                  <Github size={14} />
+                  GitHub
+                </motion.a>
+
+                <motion.a
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  href="https://www.linkedin.com/in/arnav-purushotam-2375aa203/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] transition-colors ${
+                    isDarkMode
+                      ? 'border-zinc-700 bg-zinc-900/40 text-white hover:border-yellow-400 hover:text-yellow-300'
+                      : 'border-zinc-300 bg-white/50 text-zinc-900 hover:border-indigo-600 hover:text-indigo-700'
+                  }`}
+                >
+                  <Linkedin size={14} />
+                  LinkedIn
+                </motion.a>
+
+                <motion.a
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+                  download="Arnav_Purushotam_Resume_2026.pdf"
+                  className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] transition-colors ${
+                    isDarkMode
+                      ? 'border-zinc-700 bg-zinc-900/40 text-white hover:border-yellow-400 hover:text-yellow-300'
+                      : 'border-zinc-300 bg-white/50 text-zinc-900 hover:border-indigo-600 hover:text-indigo-700'
+                  }`}
+                >
+                  <Download size={14} />
+                  Resume
+                </motion.a>
               </div>
 
               <div className="mt-8 space-y-4">

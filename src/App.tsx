@@ -1,11 +1,18 @@
 // @ts-nocheck
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, ArrowRight, X, Menu, Github, Linkedin, Monitor, Play, Pause, SkipForward } from 'lucide-react';
+import { Sun, Moon, ArrowRight, X, Menu, Github, Linkedin, Monitor, Play, Pause, SkipForward, Download } from 'lucide-react';
 import Milestones from './components/Milestones';
 import Hero from './components/Hero';
 import GetInTouch from './components/GetInTouch';
 import About from './components/About';
+
+const getScratchCanvasQuality = () => {
+  if (typeof window === 'undefined') return 1;
+  if (window.innerWidth < 640) return 0.55;
+  if (window.innerWidth < 1024) return 0.7;
+  return 0.8;
+};
 
 const Portfolio = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -91,16 +98,36 @@ const Portfolio = () => {
   }, []);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      cursorX.set(e.clientX);
-      cursorY.set(e.clientY);
-      const x = (e.clientX / window.innerWidth) - 0.5;
-      const y = (e.clientY / window.innerHeight) - 0.5;
-      mouseX.set(x);
-      mouseY.set(y);
+    const mediaQuery = window.matchMedia('(pointer:fine)');
+    if (!mediaQuery.matches) return;
+
+    let rafId: number | null = null;
+    let nextX = 0;
+    let nextY = 0;
+
+    const flushMouseUpdates = () => {
+      cursorX.set(nextX);
+      cursorY.set(nextY);
+      mouseX.set((nextX / window.innerWidth) - 0.5);
+      mouseY.set((nextY / window.innerHeight) - 0.5);
+      rafId = null;
     };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      nextX = e.clientX;
+      nextY = e.clientY;
+      if (rafId === null) {
+        rafId = requestAnimationFrame(flushMouseUpdates);
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
   }, [cursorX, cursorY, mouseX, mouseY]);
 
   const portraitRotateX = useTransform(mouseY, [-0.5, 0.5], [15, -15]);
@@ -112,35 +139,83 @@ const Portfolio = () => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
     if (!canvas || !video || isLoading) return;
-    video.play().catch((err: unknown) => console.error("Video playback failed:", err));
     const ctx = canvas.getContext('2d');
-    let animationFrame: number;
+    if (!ctx) return;
+
+    let animationFrame: number | null = null;
+    let videoFrameCallback: number | null = null;
 
     const initCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      ctx!.globalCompositeOperation = 'source-over';
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const quality = getScratchCanvasQuality();
+      canvas.width = Math.floor(viewportWidth * quality);
+      canvas.height = Math.floor(viewportHeight * quality);
+      canvas.dataset.scaleX = (canvas.width / viewportWidth).toString();
+      canvas.dataset.scaleY = (canvas.height / viewportHeight).toString();
+      ctx.globalCompositeOperation = 'source-over';
       // Universal BG Color applied to Canvas
-      ctx!.fillStyle = isDarkMode ? '#0a0a0a' : '#304d69'; 
-      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = isDarkMode ? '#0a0a0a' : '#304d69'; 
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     };
 
-    const render = () => {
+    const drawFrame = () => {
       if (video.readyState >= 2) {
-        ctx!.save();
-        ctx!.globalCompositeOperation = 'source-atop';
-        ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-        ctx!.restore();
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
       }
-      animationFrame = requestAnimationFrame(render);
     };
 
+    const stopRenderLoop = () => {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = null;
+      }
+      if (videoFrameCallback !== null && 'cancelVideoFrameCallback' in video) {
+        video.cancelVideoFrameCallback(videoFrameCallback);
+        videoFrameCallback = null;
+      }
+    };
+
+    const startRenderLoop = () => {
+      stopRenderLoop();
+      if (document.hidden) return;
+
+      if ('requestVideoFrameCallback' in video) {
+        const renderFromVideo = () => {
+          drawFrame();
+          videoFrameCallback = video.requestVideoFrameCallback(renderFromVideo);
+        };
+        videoFrameCallback = video.requestVideoFrameCallback(renderFromVideo);
+        return;
+      }
+
+      const renderFromRaf = () => {
+        drawFrame();
+        animationFrame = requestAnimationFrame(renderFromRaf);
+      };
+      animationFrame = requestAnimationFrame(renderFromRaf);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopRenderLoop();
+      } else {
+        startRenderLoop();
+      }
+    };
+
+    video.play().catch((err: unknown) => console.error("Video playback failed:", err));
     initCanvas();
-    render();
+    startRenderLoop();
     window.addEventListener('resize', initCanvas);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       window.removeEventListener('resize', initCanvas);
-      cancelAnimationFrame(animationFrame);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopRenderLoop();
     };
   }, [isDarkMode, isLoading]);
 
@@ -151,14 +226,17 @@ const Portfolio = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scaleX = parseFloat((canvas.dataset && canvas.dataset.scaleX) || '1');
+    const scaleY = parseFloat((canvas.dataset && canvas.dataset.scaleY) || '1');
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    const lineWidthScale = (scaleX + scaleY) / 2;
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     // Adjusted lineWidth for smaller screens
-    ctx.lineWidth = window.innerWidth < 768 ? 80 : 150; 
+    ctx.lineWidth = (window.innerWidth < 768 ? 80 : 150) * lineWidthScale; 
     ctx.beginPath();
     const prevX = (canvas.dataset && canvas.dataset.prevX) || undefined;
     const prevY = (canvas.dataset && canvas.dataset.prevY) || undefined;
@@ -184,9 +262,6 @@ const Portfolio = () => {
     }
   };
 
-  const { scrollYProgress: horizontalScroll } = useScroll({ target: horizontalSectionRef });
-  // Dynamic translate based on mobile (scroll vertical) vs desktop (horizontal)
-  const xTranslate = useTransform(horizontalScroll, [0, 1], ["0%", "-66.6%"]);
   const welcomeScale = useTransform(globalScroll, [0, 0.2], [1, 1.3]);
   const welcomeOpacity = useTransform(globalScroll, [0, 0.15], [0.4, 0]);
 
@@ -315,6 +390,15 @@ const Portfolio = () => {
               imgSrc="/images/leetcode.svg"
               alt="LeetCode"
             />
+
+            <a
+              href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+              download="Arnav_Purushotam_Resume_2026.pdf"
+              className="ml-1 inline-flex items-center gap-1 rounded-full border border-white/25 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white transition-colors hover:border-yellow-400 hover:text-yellow-300 md:text-[10px]"
+            >
+              <Download size={11} />
+              Resume
+            </a>
 
           </div>
 

@@ -5,9 +5,8 @@ import {
   ContactShadows,
   useGLTF,
   useAnimations,
-  Environment,
 } from '@react-three/drei';
-import { motion, useMotionValue, useSpring, useTransform, useScroll } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform, useScroll, useInView } from 'framer-motion';
 
 /* --- 1. Sequential Multi-Character Controller --- */
 function CharacterModel({ isSongPlaying }: { isSongPlaying: boolean }) {
@@ -78,10 +77,13 @@ function CharacterModel({ isSongPlaying }: { isSongPlaying: boolean }) {
 /* --- 2. Main About Component --- */
 export default function About({ isDarkMode, isSongPlaying }: { isDarkMode: boolean; isSongPlaying: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isSectionInView = useInView(containerRef, { amount: 0.2 });
+  const [isFinePointer, setIsFinePointer] = useState(true);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 1024 : true
+  );
   const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
   const smoothX = useSpring(mouseX, { damping: 50, stiffness: 200 });
-  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 200 });
 
   // Use scroll for parallax on the character
   const { scrollYProgress } = useScroll({
@@ -90,12 +92,36 @@ export default function About({ isDarkMode, isSongPlaying }: { isDarkMode: boole
   });
 
   const characterYParallax = useTransform(scrollYProgress, [0, 1], [1, -1]);
+  const characterXParallax = useTransform(
+    smoothX,
+    [-0.5, 0.5],
+    isDesktopViewport ? [4, 2] : [0, 0]
+  );
+  const headingXParallax = useTransform(smoothX, [-0.5, 0.5], [-50, 50]);
+
+  useEffect(() => {
+    const pointerQuery = window.matchMedia('(pointer:fine)');
+
+    const handleViewportChange = () => {
+      setIsFinePointer(pointerQuery.matches);
+      setIsDesktopViewport(window.innerWidth >= 1024);
+    };
+
+    handleViewportChange();
+    window.addEventListener('resize', handleViewportChange);
+    pointerQuery.addEventListener('change', handleViewportChange);
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      pointerQuery.removeEventListener('change', handleViewportChange);
+    };
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    const { clientX, clientY } = e;
-    const { innerWidth, innerHeight } = window;
+    if (!isFinePointer) return;
+    const { clientX } = e;
+    const { innerWidth } = window;
     mouseX.set((clientX / innerWidth) - 0.5);
-    mouseY.set((clientY / innerHeight) - 0.5);
   };
 
   const skillGroups = [
@@ -116,14 +142,19 @@ export default function About({ isDarkMode, isSongPlaying }: { isDarkMode: boole
     >
       {/* 1. FULL WIDTH BACKGROUND 3D STAGE */}
       <div className="absolute inset-0 z-0">
-        <Canvas shadows camera={{ position: [0, 0, 8], fov: 35 }}>
+        <Canvas
+          dpr={[1, 1.5]}
+          frameloop={isSectionInView ? 'always' : 'never'}
+          gl={{ antialias: false, powerPreference: 'high-performance' }}
+          shadows
+          camera={{ position: [0, 0, 8], fov: 35 }}
+        >
           <ambientLight intensity={isDarkMode ? 0.5 : 1} />
           <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={2} />
           <Suspense fallback={null}>
             <motion.group
               style={{
-                // Responsively adjust X position based on screen width
-                x: useTransform(smoothX, [-0.5, 0.5], [window?.innerWidth < 1024 ? 0 : 4, window?.innerWidth < 1024 ? 0 : 2]), 
+                x: characterXParallax,
                 y: characterYParallax,
               }}
             >
@@ -262,7 +293,7 @@ export default function About({ isDarkMode, isSongPlaying }: { isDarkMode: boole
       {/* 5. MASSIVE BACKGROUND TYPE - Scaled for mobile */}
       <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 pointer-events-none select-none z-[-1] overflow-hidden">
           <motion.h1 
-            style={{ x: useTransform(smoothX, [-0.5, 0.5], [-50, 50]) }}
+            style={{ x: headingXParallax }}
             className={`text-[40vw] lg:text-[35vw] leading-none font-black opacity-[0.02] whitespace-nowrap ${
               isDarkMode ? "text-white" : "text-blue-900"
             }`}

@@ -154,13 +154,14 @@ export default function Hero({isDarkMode, videoRef, portraitRotateX, portraitRot
                 }
                 }}
             >
-                <button className="group relative overflow-hidden text-white hover:text-black px-5 py-2 sm:px-6 sm:py-2.5 rounded-full font-bold uppercase text-[9px] sm:text-[11px] tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] hover:-translate-y-1 active:scale-95">
-                <span className="relative z-10 flex items-center gap-2"
-                    onClick={() => {
-                        window.open('/resume/Arnav_Purushotam_Resume_2026.pdf');
-                    }}
+                <a
+                  href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+                  download="Arnav_Purushotam_Resume_2026.pdf"
+                  aria-label="Download Arnav Purushotam resume"
+                  className="group relative inline-flex overflow-hidden text-white hover:text-black px-5 py-2 sm:px-6 sm:py-2.5 rounded-full font-bold uppercase text-[9px] sm:text-[11px] tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] hover:-translate-y-1 active:scale-95"
                 >
-                    Resume Download
+                <span className="relative z-10 flex items-center gap-2">
+                    Download Resume
                     <motion.span
                     animate={{ y: [0, 3, 0] }}
                     transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
@@ -182,7 +183,7 @@ export default function Hero({isDarkMode, videoRef, portraitRotateX, portraitRot
                     }}
                     className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
                 />
-                </button>
+                </a>
             </motion.div>
             </motion.div>
         </div>
