@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { withBase } from "../lib/assetPath";
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -50,7 +51,7 @@ export default function Hero({isDarkMode, videoRef, portraitRotateX, portraitRot
               >WELCOME</h2>
             </motion.div>
           <img 
-            src="/images/sketch_no_back.png" 
+            src={withBase('images/sketch_no_back.png')} 
             alt="Portrait" 
             className="h-[50vw] sm:h-[60vw] md:h-[45vw] w-auto object-contain grayscale brightness-90 object-bottom transform scale-110 drop-shadow-2xl" 
           />
@@ -155,7 +156,7 @@ export default function Hero({isDarkMode, videoRef, portraitRotateX, portraitRot
                 }}
             >
                 <a
-                  href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+                  href={withBase('resume/Arnav_Purushotam_Resume_2026.pdf')}
                   download="Arnav_Purushotam_Resume_2026.pdf"
                   aria-label="Download Arnav Purushotam resume"
                   className="group relative inline-flex overflow-hidden text-white hover:text-black px-5 py-2 sm:px-6 sm:py-2.5 rounded-full font-bold uppercase text-[9px] sm:text-[11px] tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(52,211,153,0.3)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] hover:-translate-y-1 active:scale-95"

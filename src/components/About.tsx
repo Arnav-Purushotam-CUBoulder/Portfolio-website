@@ -7,6 +7,7 @@ import {
   useAnimations,
 } from '@react-three/drei';
 import { motion, useMotionValue, useSpring, useTransform, useScroll, useInView } from 'framer-motion';
+import { withBase } from '../lib/assetPath';
 
 /* --- 1. Sequential Multi-Character Controller --- */
 function CharacterModel({ isSongPlaying }: { isSongPlaying: boolean }) {
@@ -24,12 +25,12 @@ function CharacterModel({ isSongPlaying }: { isSongPlaying: boolean }) {
 
   const modelRegistry = useMemo(() => ({
     dancing: [
-      { url: "/models/dancing1.glb", scale: getScale(), position: [0, -2, 0] },
-      { url: "/models/rallying.glb", scale: getScale(), position: [0, -2, 0] },
-      { url: "/models/stand_greeting.glb", scale: getScale(), position: [0, -1.8, 0] },
+      { url: withBase('models/dancing1.glb'), scale: getScale(), position: [0, -2, 0] },
+      { url: withBase('models/rallying.glb'), scale: getScale(), position: [0, -2, 0] },
+      { url: withBase('models/stand_greeting.glb'), scale: getScale(), position: [0, -1.8, 0] },
     ],
     idle: [
-      { url: "/models/sad_idle.glb", scale: getScale(), position: [0, -1.8, 0] },
+      { url: withBase('models/sad_idle.glb'), scale: getScale(), position: [0, -1.8, 0] },
     ]
   }), []);
 

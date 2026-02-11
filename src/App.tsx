@@ -6,6 +6,7 @@ import Milestones from './components/Milestones';
 import Hero from './components/Hero';
 import GetInTouch from './components/GetInTouch';
 import About from './components/About';
+import { withBase } from './lib/assetPath';
 
 const getScratchCanvasQuality = () => {
   if (typeof window === 'undefined') return 1;
@@ -30,8 +31,8 @@ const Portfolio = () => {
   
   /* --- PLAYLIST CONFIGURATION --- */
   const playlist = useMemo(() => [
-    { name: "Heros Tonight", artist: "NCS", src: "/music/Heros.mp3" },
-    { name: "Mortals", artist: "NCS", src: "/music/Mortals.mp3" }
+    { name: "Heros Tonight", artist: "NCS", src: withBase('music/Heros.mp3') },
+    { name: "Mortals", artist: "NCS", src: withBase('music/Mortals.mp3') }
   ], []);
 
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
@@ -373,26 +374,26 @@ const Portfolio = () => {
             <SocialHoverImage
               href="https://github.com/Arnav-Purushotam-CUBoulder/Arnav-Purushotam-CUBoulder"
               icon={Github}
-              imgSrc="/images/github.png"
+              imgSrc={withBase('images/github.png')}
               alt="GitHub"
             />
 
             <SocialHoverImage
               href="https://www.linkedin.com/in/arnav-purushotam-2375aa203/"
               icon={Linkedin}
-              imgSrc="/images/linkedin.png"
+              imgSrc={withBase('images/linkedin.png')}
               alt="LinkedIn"
             />
 
             <SocialHoverImage
               href="https://leetcode.com/arnavp818/"
               icon={Monitor}
-              imgSrc="/images/leetcode.svg"
+              imgSrc={withBase('images/leetcode.svg')}
               alt="LeetCode"
             />
 
             <a
-              href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+              href={withBase('resume/Arnav_Purushotam_Resume_2026.pdf')}
               download="Arnav_Purushotam_Resume_2026.pdf"
               className="ml-1 inline-flex items-center gap-1 rounded-full border border-white/25 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-[0.12em] text-white transition-colors hover:border-yellow-400 hover:text-yellow-300 md:text-[10px]"
             >
@@ -498,10 +499,10 @@ const Portfolio = () => {
             </div>
           </div>
           <div className="w-[100vw] min-h-[60vh] flex-shrink-0 flex items-center justify-center">
-            <ExperienceCard mediaType="image" mediaSrc="/symbols/biofrontiers_logo.png" year="Oct 2024 — Present" company="CU BIOFRONTIERS" role="Software Engineer (Part-time)" details="Building AI-powered and distributed backend workflows for research teams across 10+ labs." isDarkMode={isDarkMode} />
+            <ExperienceCard mediaType="image" mediaSrc={withBase('symbols/biofrontiers_logo.png')} year="Oct 2024 — Present" company="CU BIOFRONTIERS" role="Software Engineer (Part-time)" details="Building AI-powered and distributed backend workflows for research teams across 10+ labs." isDarkMode={isDarkMode} />
           </div>
           <div className="w-[100vw] min-h-[60vh] flex-shrink-0 flex items-center justify-center">
-            <ExperienceCard mediaType="image" mediaSrc="/symbols/curl-logo.svg" year="Nov 2025 — Present" company="CURL / LIBCURL" role="Open Source Contributor" details="Contributing portability and compiler-stability fixes to upstream C networking infrastructure." isDarkMode={isDarkMode} />
+            <ExperienceCard mediaType="image" mediaSrc={withBase('symbols/curl-logo.svg')} year="Nov 2025 — Present" company="CURL / LIBCURL" role="Open Source Contributor" details="Contributing portability and compiler-stability fixes to upstream C networking infrastructure." isDarkMode={isDarkMode} />
           </div>
         </div>
       </div>

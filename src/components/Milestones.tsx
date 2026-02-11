@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { AnimatePresence, motion } from "framer-motion";
 import TimelineItem from "./TimeLine";
+import { withBase } from "../lib/assetPath";
 
 export default function Milestones({hoveredMilestoneLogo, milestoneRef, milestoneLogoY, setHoveredMilestoneLogo, isDarkMode}) {
     return (
@@ -35,7 +36,7 @@ export default function Milestones({hoveredMilestoneLogo, milestoneRef, mileston
               <TimelineItem 
                 side="left"
                 company="CU BIOFRONTIERS"
-                logoSrc= {isDarkMode ? "/symbols/biofrontiers_logo.png": "/symbols/biofrontiers_logo.png"}
+                logoSrc={isDarkMode ? withBase('symbols/biofrontiers_logo.png') : withBase('symbols/biofrontiers_logo.png')}
                 role="Software Engineer (Part-time)"
                 date="Oct 2024 – Present | Boulder, USA"
                 onHover={setHoveredMilestoneLogo}
@@ -49,7 +50,7 @@ export default function Milestones({hoveredMilestoneLogo, milestoneRef, mileston
               <TimelineItem 
                 side="right"
                 company="CURL / LIBCURL"
-                logoSrc={isDarkMode ? "/symbols/curl-logo.svg" : "/symbols/curl-logo.svg"}
+                logoSrc={isDarkMode ? withBase('symbols/curl-logo.svg') : withBase('symbols/curl-logo.svg')}
                 role="Open Source Contributor"
                 date="Nov 2025 – Present | Open Source"
                 onHover={setHoveredMilestoneLogo}
@@ -63,7 +64,7 @@ export default function Milestones({hoveredMilestoneLogo, milestoneRef, mileston
               <TimelineItem 
                 side="left"
                 company="SELECTED PROJECTS"
-                logoSrc={isDarkMode ? "/symbols/ecommerce_arch.png" : "/symbols/ecommerce_arch.png"}
+                logoSrc={isDarkMode ? withBase('symbols/ecommerce_arch.png') : withBase('symbols/ecommerce_arch.png')}
                 role="Distributed Systems & Developer Tools"
                 date="2024 – 2026 | GitHub"
                 onHover={setHoveredMilestoneLogo}

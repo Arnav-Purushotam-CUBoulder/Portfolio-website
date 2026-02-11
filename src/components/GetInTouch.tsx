@@ -4,6 +4,7 @@ import { MeshDistortMaterial, Float, Torus } from '@react-three/drei';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useInView } from 'framer-motion';
 import { Download, Github, Linkedin } from 'lucide-react';
 import * as THREE from 'three';
+import { withBase } from '../lib/assetPath';
 
 function FollowLight({ isDarkMode }: { isDarkMode: boolean }) {
   const lightRef = useRef<THREE.PointLight>(null);
@@ -196,7 +197,7 @@ export default function GetInTouch({ isDarkMode, isVisible = true }: { isDarkMod
                 <motion.a
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  href="/resume/Arnav_Purushotam_Resume_2026.pdf"
+                  href={withBase('resume/Arnav_Purushotam_Resume_2026.pdf')}
                   download="Arnav_Purushotam_Resume_2026.pdf"
                   className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] transition-colors ${
                     isDarkMode
